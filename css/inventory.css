@@ -1,0 +1,141 @@
+/* ==========================================================================
+   CHRONICLES OF AETHELGARD - INVENTORY & ARMORY STYLESHEET
+   Paperdoll Slots, 60-Slot Bag Grid, Rarity Highlighting, Item Compare
+   ========================================================================== */
+
+.inventory-grid-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+}
+.equipment-paperdoll-panel {
+  background: rgba(12, 16, 26, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.subpanel-title {
+  font-size: 14px;
+  text-align: center;
+  color: var(--gold-light);
+}
+.paperdoll-slots-layout {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.equip-slot {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  background: rgba(18, 24, 38, 0.9);
+  border: 1px dashed rgba(212, 175, 55, 0.4);
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.equip-slot:hover {
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 10px var(--gold-glow);
+}
+.equip-slot-label {
+  position: absolute;
+  top: 2px;
+  font-size: 8px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+.paperdoll-stats-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  background: rgba(8, 10, 16, 0.8);
+  border-radius: 6px;
+}
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+}
+.stat-item b {
+  color: var(--gold-light);
+}
+.inventory-bag-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.inventory-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.filter-tabs {
+  display: flex;
+  gap: 6px;
+}
+.filter-tab {
+  padding: 6px 12px;
+  background: rgba(18, 24, 38, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.filter-tab.active, .filter-tab:hover {
+  background: rgba(36, 48, 72, 0.9);
+  border-color: var(--gold-primary);
+  color: var(--gold-light);
+}
+.inventory-bag-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 6px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 4px;
+  background: rgba(8, 12, 18, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--border-radius-md);
+}
+.inv-slot {
+  width: 44px;
+  height: 44px;
+  background: rgba(14, 20, 30, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-fast);
+}
+.inv-slot:hover {
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 8px var(--gold-glow);
+  transform: scale(1.05);
+}
+.inv-slot.rarity-uncommon  { border-color: var(--rarity-uncommon); }
+.inv-slot.rarity-rare      { border-color: var(--rarity-rare); }
+.inv-slot.rarity-epic      { border-color: var(--rarity-epic); }
+.inv-slot.rarity-legendary { border-color: var(--rarity-legendary); box-shadow: 0 0 8px rgba(237, 137, 54, 0.4); }
+.inv-slot.rarity-mythic    { border-color: var(--rarity-mythic); box-shadow: 0 0 10px rgba(245, 101, 101, 0.6); }
+.inventory-capacity-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding-top: 6px;
+}
+

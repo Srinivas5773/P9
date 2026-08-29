@@ -1,0 +1,181 @@
+/* ==========================================================================
+   CHRONICLES OF AETHELGARD - COMBAT STYLESHEET
+   Tactical Battles, Enemy Formations, Skill Menus, Combat Log, Floating Text
+   ========================================================================== */
+
+.combat-scene-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 60;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 8, 14, 0.85);
+  backdrop-filter: blur(8px);
+}
+.combat-scene-layer.active-combat {
+  display: flex;
+}
+
+.combat-arena-wrapper {
+  width: 1100px;
+  max-width: 95vw;
+  height: 640px;
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+/* Enemy Row Formation */
+.combat-enemies-row {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  align-items: flex-end;
+  height: 320px;
+  padding-bottom: 20px;
+}
+
+.combat-enemy-card {
+  position: relative;
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform var(--transition-fast), filter var(--transition-fast);
+}
+.combat-enemy-card:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 0 10px rgba(229, 62, 62, 0.8));
+}
+.combat-enemy-card.targeted {
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 16px #ff4d4d);
+}
+.enemy-sprite-container {
+  width: 140px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.enemy-sprite-container canvas {
+  max-width: 100%;
+  max-height: 100%;
+}
+.enemy-vitals {
+  width: 100%;
+  text-align: center;
+  margin-top: 8px;
+}
+.enemy-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ff9999;
+  text-shadow: 0 1px 3px #000;
+  margin-bottom: 2px;
+}
+.enemy-health-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: rgba(20, 24, 32, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.enemy-health-bar-fill {
+  height: 100%;
+  background: var(--health-gradient);
+  transition: width 0.2s ease-out;
+}
+
+/* Combat Log Box */
+.combat-log-box {
+  height: 120px;
+  padding: 10px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #d1d5db;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+.log-entry {
+  margin-bottom: 4px;
+}
+.log-crit    { color: #ffd700; font-weight: bold; }
+.log-damage  { color: #ff6b6b; }
+.log-heal    { color: #68d391; }
+.log-cast    { color: #63b3ed; }
+.log-status  { color: #b794f4; }
+
+/* Combat Action Dock */
+.combat-action-dock {
+  padding: 16px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.combat-dock-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+.combat-btn {
+  min-width: 130px;
+  padding: 12px;
+  font-size: 15px;
+}
+.combat-sub-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  min-height: 40px;
+}
+.skill-action-chip {
+  padding: 8px 14px;
+  background: rgba(22, 28, 44, 0.9);
+  border: 1px solid var(--gold-primary);
+  border-radius: var(--border-radius-md);
+  color: var(--gold-light);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.skill-action-chip:hover {
+  background: rgba(40, 52, 80, 0.95);
+  box-shadow: 0 0 10px var(--gold-glow);
+}
+
+/* Floating Combat Text Layer */
+.floating-combat-text-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 80;
+}
+.fct-item {
+  position: absolute;
+  font-size: 18px;
+  font-weight: 800;
+  text-shadow: 0 2px 4px #000, 0 0 8px #000;
+  animation: floatUpFade 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.fct-damage   { color: #ff5252; }
+.fct-crit     { color: #ffd700; font-size: 24px; }
+.fct-heal     { color: #48bb78; }
+.fct-mana     { color: #4299e1; }
+.fct-miss     { color: #a0aec0; font-style: italic; }
+

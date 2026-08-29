@@ -1,0 +1,39 @@
+/* ==========================================================================
+   CHRONICLES OF AETHELGARD - ANIMATIONS & KEYFRAMES
+   Visual FX, Spell Impacts, Floating Damage, Screen Shake, Day-Night Transitions
+   ========================================================================== */
+
+@keyframes floatUpFade {
+  0% { opacity: 0; transform: translateY(0) scale(0.8); }
+  20% { opacity: 1; transform: translateY(-12px) scale(1.1); }
+  80% { opacity: 1; transform: translateY(-36px) scale(1); }
+  100% { opacity: 0; transform: translateY(-50px) scale(0.9); }
+}
+
+@keyframes toastIn {
+  0% { opacity: 0; transform: translateX(-30px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideUpDialogue {
+  0% { opacity: 0; transform: translate(-50%, 30px); }
+  100% { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 8px var(--gold-glow); }
+  50% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.7); }
+}
+
+@keyframes shakeScreen {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-6px, 4px); }
+  40% { transform: translate(5px, -5px); }
+  60% { transform: translate(-4px, -3px); }
+  80% { transform: translate(4px, 3px); }
+}
+
+.shake-active {
+  animation: shakeScreen 0.35s ease-in-out;
+}
+

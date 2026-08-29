@@ -1,0 +1,156 @@
+/* ==========================================================================
+   CHRONICLES OF AETHELGARD - MINIGAMES STYLESHEET
+   Card Battle Arena, Fishing Reel Gauge, Lockpicking Cylinder
+   ========================================================================== */
+
+/* Card Game */
+.card-game-layout {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 12px;
+  background: radial-gradient(circle at center, #1b263b 0%, #0d131f 100%);
+  border-radius: var(--border-radius-md);
+}
+.card-side {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 110px;
+  padding: 8px 16px;
+}
+.card-hand {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+.game-card {
+  width: 70px;
+  height: 95px;
+  background: #141b2a;
+  border: 2px solid var(--gold-primary);
+  border-radius: 6px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.game-card:hover {
+  transform: translateY(-8px) scale(1.08);
+  box-shadow: 0 8px 16px var(--gold-glow);
+}
+.card-power {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--gold-light);
+}
+.card-title {
+  font-size: 9px;
+  text-align: center;
+  color: #fff;
+}
+.card-battlefield {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 10px 0;
+}
+.battlefield-row {
+  height: 52px;
+  background: rgba(10, 14, 22, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 6px;
+}
+.row-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  width: 50px;
+  text-transform: uppercase;
+}
+.battlefield-divider {
+  height: 2px;
+  background: var(--gold-primary);
+  margin: 4px 0;
+}
+
+/* Fishing Minigame */
+.minigame-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 85;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 8, 16, 0.8);
+}
+.minigame-overlay.active-minigame {
+  display: flex;
+}
+.fishing-box {
+  width: 360px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.fishing-gauge-container {
+  position: relative;
+  width: 60px;
+  height: 240px;
+  background: #0b111c;
+  border: 2px solid var(--gold-primary);
+  border-radius: 30px;
+  overflow: hidden;
+}
+.fishing-tension-bar {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 50%;
+  background: linear-gradient(180deg, #48bb78 0%, #3182ce 100%);
+}
+.fishing-target-zone {
+  position: absolute;
+  top: 40px;
+  width: 100%;
+  height: 60px;
+  background: rgba(255, 215, 0, 0.4);
+  border-top: 2px solid #ffd700;
+  border-bottom: 2px solid #ffd700;
+}
+
+/* Lockpicking */
+.lockpicking-box {
+  width: 400px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.lockpicking-box canvas {
+  background: #080c14;
+  border: 2px solid var(--gold-primary);
+  border-radius: 50%;
+}
+.lock-instructions {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.picks-remaining {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold-light);
+}
+

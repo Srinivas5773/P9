@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Chronicles of Aethelgard: Realm of the Forgotten Kings</title>
+  <meta name="description" content="A massive dark-fantasy RPG and kingdom simulation game built purely in HTML5, CSS3, and JavaScript.">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/ui.css">
+  <link rel="stylesheet" href="css/combat.css">
+  <link rel="stylesheet" href="css/kingdom.css">
+  <link rel="stylesheet" href="css/inventory.css">
+  <link rel="stylesheet" href="css/dialogue.css">
+  <link rel="stylesheet" href="css/minigames.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+  <!-- Root Application Container -->
+  <div id="game-app" class="game-container state-title-screen">
+    
+    <!-- Canvas Layer Stack -->
+    <div id="canvas-stack" class="canvas-viewport">
+      <canvas id="background-canvas" width="1280" height="720"></canvas>
+      <canvas id="terrain-canvas" width="1280" height="720"></canvas>
+      <canvas id="game-canvas" width="1280" height="720"></canvas>
+      <canvas id="lighting-canvas" width="1280" height="720"></canvas>
+      <canvas id="weather-canvas" width="1280" height="720"></canvas>
+      <canvas id="particle-canvas" width="1280" height="720"></canvas>
+      <canvas id="ui-canvas" width="1280" height="720"></canvas>
+    </div>
+    
+    <!-- Top HUD Bar -->
+    <header id="top-hud" class="hud-layer hud-top">
+      <div class="hud-section hud-player-vitals">
+        <div class="player-portrait-frame" id="hud-player-portrait">
+          <div class="portrait-avatar class-paladin" id="portrait-icon"></div>
+          <span class="portrait-level-badge" id="hud-level-badge">Lv. 1</span>
+        </div>
+        <div class="vitals-bars-container">
+          <div class="vital-bar-wrapper health-bar-wrapper">
+            <div class="vital-bar health-bar" id="hud-health-bar" style="width: 100%;"></div>
+            <span class="vital-bar-text" id="hud-health-text">100 / 100</span>
+          </div>
+          <div class="vital-bar-wrapper mana-bar-wrapper">
+            <div class="vital-bar mana-bar" id="hud-mana-bar" style="width: 100%;"></div>
+            <span class="vital-bar-text" id="hud-mana-text">50 / 50</span>
+          </div>
+          <div class="vital-bar-wrapper stamina-bar-wrapper">
+            <div class="vital-bar stamina-bar" id="hud-stamina-bar" style="width: 100%;"></div>
+            <span class="vital-bar-text" id="hud-stamina-text">80 / 80</span>
+          </div>
+          <div class="vital-bar-wrapper xp-bar-wrapper">
+            <div class="vital-bar xp-bar" id="hud-xp-bar" style="width: 0%;"></div>
+            <span class="vital-bar-text" id="hud-xp-text">0 / 250 XP</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Active Effects / Buffs / Debuffs -->
+      <div class="hud-section hud-buff-tray" id="hud-buff-tray"></div>
+      
+      <!-- World Environment & Clock Status -->
+      <div class="hud-section hud-environment-info">
+        <div class="location-display" id="hud-location-name">Valoria Outskirts</div>
+        <div class="time-weather-readout">
+          <span class="time-clock" id="hud-time-clock">Day 1 - 08:30 AM</span>
+          <span class="weather-icon weather-clear" id="hud-weather-icon" title="Clear Skies">☀️ Clear</span>
+          <span class="biome-indicator" id="hud-biome-badge">Temperate Forest</span>
+        </div>
+      </div>
+      
+      <!-- Kingdom & Resource Treasury Overview -->
+      <div class="hud-section hud-treasury-overview">
+        <div class="resource-badge gold-badge" title="Gold Coins"><i class="res-icon icon-gold"></i><span id="hud-gold-count">250</span></div>
+        <div class="resource-badge shards-badge" title="Soul Shards"><i class="res-icon icon-shards"></i><span id="hud-shards-count">10</span></div>
+        <div class="resource-badge wood-badge" title="Timber Supply"><i class="res-icon icon-wood"></i><span id="hud-wood-count">150</span></div>
+        <div class="resource-badge stone-badge" title="Stone Supply"><i class="res-icon icon-stone"></i><span id="hud-stone-count">80</span></div>
+        <div class="resource-badge iron-badge" title="Iron Ingots"><i class="res-icon icon-iron"></i><span id="hud-iron-count">40</span></div>
+      </div>
+    </header>
+    
+    <!-- Minimap & Quest Objective Widget (Top-Right) -->
+    <aside id="widget-sidebar" class="hud-layer hud-top-right">
+      <div class="minimap-container glass-panel">
+        <div class="minimap-header">
+          <span class="minimap-title">Zone Radar</span>
+          <button class="minimap-toggle-btn" id="btn-toggle-minimap">🔍</button>
+        </div>
+        <div class="minimap-frame">
+          <canvas id="minimap-canvas" width="160" height="160"></canvas>
+          <div class="minimap-player-blip"></div>
+        </div>
+        <div class="minimap-coordinates" id="hud-coords">X: 124, Y: 088</div>
+      </div>
+      
+      <div class="quest-tracker-widget glass-panel" id="quest-tracker-widget">
+        <div class="widget-header">
+          <span class="widget-title">Active Objectives</span>
+        </div>
+        <div class="quest-tracker-list" id="hud-quest-tracker-list">
+          <div class="tracker-item">
+            <h4 class="tracker-quest-title">The Call of Fate</h4>
+            <p class="tracker-quest-desc">Speak with Elder Rowan in Oakhaven.</p>
+            <div class="tracker-progress">0 / 1 Spoken</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- Bottom Quick Action & Action Bar (HUD Bottom) -->
+    <footer id="bottom-hud" class="hud-layer hud-bottom">
+      <div class="menu-navigation-bar">
+        <button class="hud-nav-btn" id="nav-btn-character" data-modal="modal-character" title="Character Sheet (C)"><span class="nav-key">[C]</span> Character</button>
+        <button class="hud-nav-btn" id="nav-btn-inventory" data-modal="modal-inventory" title="Inventory (I)"><span class="nav-key">[I]</span> Inventory</button>
+        <button class="hud-nav-btn" id="nav-btn-skills" data-modal="modal-skills" title="Skill Tree (K)"><span class="nav-key">[K]</span> Skills</button>
+        <button class="hud-nav-btn" id="nav-btn-quests" data-modal="modal-quests" title="Quest Log (J)"><span class="nav-key">[J]</span> Quests</button>
+        <button class="hud-nav-btn" id="nav-btn-kingdom" data-modal="modal-kingdom" title="Kingdom (U)"><span class="nav-key">[U]</span> Kingdom</button>
+        <button class="hud-nav-btn" id="nav-btn-crafting" data-modal="modal-crafting" title="Crafting & Forge (O)"><span class="nav-key">[O]</span> Crafting</button>
+        <button class="hud-nav-btn" id="nav-btn-alchemy" data-modal="modal-alchemy" title="Alchemy Lab (L)"><span class="nav-key">[L]</span> Alchemy</button>
+        <button class="hud-nav-btn" id="nav-btn-bestiary" data-modal="modal-bestiary" title="Codex & Bestiary (B)"><span class="nav-key">[B]</span> Bestiary</button>
+        <button class="hud-nav-btn" id="nav-btn-achievements" data-modal="modal-achievements" title="Achievements (Y)"><span class="nav-key">[Y]</span> Trophies</button>
+        <button class="hud-nav-btn" id="nav-btn-settings" data-modal="modal-settings" title="Settings (Esc)"><span class="nav-key">[Esc]</span> Menu</button>
+      </div>
+      
+      <!-- Combat / Skill Quickslots -->
+      <div class="action-quickbar" id="action-quickbar">
+        <div class="quickslot-slot" data-slot="1" id="quickslot-1">
+          <span class="slot-hotkey">1</span>
+          <div class="slot-icon empty" id="quickslot-icon-1"></div>
+          <div class="slot-cooldown-overlay" id="quickslot-cd-1"></div>
+          <span class="slot-stack-count" id="quickslot-count-1"></span>
+        </div>
+        <div class="quickslot-slot" data-slot="2" id="quickslot-2">
+          <span class="slot-hotkey">2</span>
+          <div class="slot-icon empty" id="quickslot-icon-2"></div>
+          <div class="slot-cooldown-overlay" id="quickslot-cd-2"></div>
+          <span class="slot-stack-count" id="quickslot-count-2"></span>
+        </div>
+        <div class="quickslot-slot" data-slot="3" id="quickslot-3">
+          <span class="slot-hotkey">3</span>
+          <div class="slot-icon empty" id="quickslot-icon-3"></div>
+          <div class="slot-cooldown-overlay" id="quickslot-cd-3"></div>
+          <span class="slot-stack-count" id="quickslot-count-3"></span>
+        </div>
+        <div class="quickslot-slot" data-slot="4" id="quickslot-4">
+          <span class="slot-hotkey">4</span>
+          <div class="slot-icon empty" id="quickslot-icon-4"></div>
+          <div class="slot-cooldown-overlay" id="quickslot-cd-4"></div>
+          <span class="slot-stack-count" id="quickslot-count-4"></span>
+        </div>
+        <div class="quickslot-slot" data-slot="5" id="quickslot-5">
+          <span class="slot-hotkey">5</span>
+          <div class="slot-icon empty" id="quickslot-icon-5"></div>
+          <div class="slot-cooldown-overlay" id="quickslot-cd-5"></div>
+          <span class="slot-stack-count" id="quickslot-count-5"></span>
+        </div>
+        <div class="quickslot-slot" data-slot="6" id="quickslot-6">
+          <span class="slot-hotkey">6</span>
+          <div class="slot-icon empty" id="quickslot-icon-6"></div>
+          <div class="slot-cooldown-overlay" id="quickslot-cd-6"></div>
+          <span class="slot-stack-count" id="quickslot-count-6"></span>
+        </div>
+        <div class="quickslot-slot" data-slot="7" id="quickslot-7">
+          <span class="slot-hotkey">7</span>
+          <div class="slot-icon empty" id="quickslot-icon-7"></div>
+          <div class="slot-cooldown-overlay" id="quickslot-cd-7"></div>
+          <span class="slot-stack-count" id="quickslot-count-7"></span>
+        </div>
+        <div class="quickslot-slot" data-slot="8" id="quickslot-8">
+          <span class="slot-hotkey">8</span>
+          <div class="slot-icon empty" id="quickslot-icon-8"></div>
+          <div class="slot-cooldown-overlay" id="quickslot-cd-8"></div>
+          <span class="slot-stack-count" id="quickslot-count-8"></span>
+        </div>
+      </div>
+    </footer>
+    
+    <!-- Notification & Toast Stack Container -->
+    <div id="toast-container" class="toast-stack-layer"></div>
+    <div id="combat-text-layer" class="floating-combat-text-layer"></div>
+    <div id="cinematic-bars" class="cinematic-overlay-bars"></div>
+    
+    <!-- ======================================================== -->
+    <!-- MODALS & SCREEN PANELS                                    -->
+    <!-- ======================================================== -->
+    
+    <!-- 1. TITLE SCREEN / MAIN MENU -->
+    <section id="screen-title" class="screen-panel active-screen">
+      <div class="title-bg-animation"></div>
+      <div class="title-content-card glass-modal">
+        <div class="title-logo-container">
+          <h1 class="game-main-title">CHRONICLES OF AETHELGARD</h1>
+          <h2 class="game-subtitle">Realm of the Forgotten Kings</h2>
+          <p class="title-tagline">An Epic Standalone Procedural Dark-Fantasy RPG & Kingdom Conquest</p>
+        </div>
+        <div class="title-menu-buttons">
+          <button class="btn-fantasy btn-large" id="title-btn-new-game">✦ New Journey</button>
+          <button class="btn-fantasy btn-large" id="title-btn-load-game">📜 Continue Chronicle</button>
+          <button class="btn-fantasy" id="title-btn-arena">⚔️ Arena of Champions</button>
+          <button class="btn-fantasy" id="title-btn-card-tavern">🃏 Tavern Card Parlor</button>
+          <button class="btn-fantasy" id="title-btn-codex">📖 Ancient Lore Codex</button>
+          <button class="btn-fantasy" id="title-btn-settings">⚙️ System Options</button>
+        </div>
+        <div class="title-version-footer">
+          <span>Version 1.0.0 (Grand Edition) • 55,000+ Lines of Vanilla Architecture • Client-Side Standalone</span>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 2. CHARACTER CREATION SCREEN -->
+    <section id="screen-char-creation" class="screen-panel">
+      <div class="char-creation-container glass-modal">
+        <div class="panel-header">
+          <h2 class="panel-title">Forge Your Legend</h2>
+          <p class="panel-desc">Choose your lineage, class specialization, and starting path.</p>
+        </div>
+        <div class="char-creation-body">
+          <!-- Left Column: Class Selection -->
+          <div class="creation-col creation-classes">
+            <h3 class="col-heading">Class Specialization</h3>
+            <div class="class-grid" id="creation-class-grid">
+              <div class="class-card selected" data-class="paladin">
+                <div class="class-icon icon-paladin"></div>
+                <div class="class-info">
+                  <h4 class="class-title">Paladin</h4>
+                  <p class="class-summary">Holy defender armed with radiant divine magic and heavy shields.</p>
+                </div>
+              </div>
+              <div class="class-card" data-class="pyromancer">
+                <div class="class-icon icon-pyromancer"></div>
+                <div class="class-info">
+                  <h4 class="class-title">Pyromancer</h4>
+                  <p class="class-summary">Master of destructive flame spells and fiery area-of-effect blasts.</p>
+                </div>
+              </div>
+              <div class="class-card" data-class="shadowblade">
+                <div class="class-icon icon-shadowblade"></div>
+                <div class="class-info">
+                  <h4 class="class-title">Shadowblade</h4>
+                  <p class="class-summary">Lethal assassin wielding poison daggers, stealth, and critical strikes.</p>
+                </div>
+              </div>
+              <div class="class-card" data-class="ranger">
+                <div class="class-icon icon-ranger"></div>
+                <div class="class-info">
+                  <h4 class="class-title">Ranger</h4>
+                  <p class="class-summary">Deadly marksman commanding the wilderness with longbows and traps.</p>
+                </div>
+              </div>
+              <div class="class-card" data-class="necromancer">
+                <div class="class-icon icon-necromancer"></div>
+                <div class="class-info">
+                  <h4 class="class-title">Necromancer</h4>
+                  <p class="class-summary">Dark summoner wielding bone armor, life-drain, and undead thralls.</p>
+                </div>
+              </div>
+              <div class="class-card" data-class="chronomancer">
+                <div class="class-icon icon-chronomancer"></div>
+                <div class="class-info">
+                  <h4 class="class-title">Chronomancer</h4>
+                  <p class="class-summary">Time-bending mage who manipulates cooldowns, speed, and dimensional rifts.</p>
+                </div>
+              </div>
+              <div class="class-card" data-class="druid">
+                <div class="class-icon icon-druid"></div>
+                <div class="class-info">
+                  <h4 class="class-title">Druid</h4>
+                  <p class="class-summary">Shapeshifting guardian of nature wielding rejuvenation and primal fury.</p>
+                </div>
+              </div>
+              <div class="class-card" data-class="berserker">
+                <div class="class-icon icon-berserker"></div>
+                <div class="class-info">
+                  <h4 class="class-title">Berserker</h4>
+                  <p class="class-summary">Raging juggernaut who converts lost health into sheer devastation.</p>
+                </div>
+              </div>
+              <div class="class-card" data-class="runemaster">
+                <div class="class-icon icon-runemaster"></div>
+                <div class="class-info">
+                  <h4 class="class-title">Runemaster</h4>
+                  <p class="class-summary">Ancient scribe etching lethal glyphs, wards, and runic barriers.</p>
+                </div>
+              </div>
+              <div class="class-card" data-class="alchemist">
+                <div class="class-icon icon-alchemist"></div>
+                <div class="class-info">
+                  <h4 class="class-title">Alchemist</h4>
+                  <p class="class-summary">Volatile apothecary tossing potion vials, mutagens, and elemental flasks.</p>
+                </div>
+              </div>
+              <div class="class-card" data-class="bard">
+                <div class="class-icon icon-bard"></div>
+                <div class="class-info">
+                  <h4 class="class-title">Bard</h4>
+                  <p class="class-summary">Inspiring virtuoso buffing allies and charming foes with song resonances.</p>
+                </div>
+              </div>
+              <div class="class-card" data-class="voidwalker">
+                <div class="class-icon icon-voidwalker"></div>
+                <div class="class-info">
+                  <h4 class="class-title">Voidwalker</h4>
+                  <p class="class-summary">Eldritch warlock harnessing cosmic gravity, black holes, and dark matter.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Right Column: Character Customization & Stats -->
+          <div class="creation-col creation-details">
+            <div class="creation-preview-box">
+              <canvas id="creation-preview-canvas" width="200" height="240"></canvas>
+            </div>
+            <div class="creation-form">
+              <label for="char-name-input">Hero Name:</label>
+              <input type="text" id="char-name-input" class="fantasy-input" maxlength="20" value="Alden Shadowbane">
+              
+              <label for="char-difficulty-select">Campaign Difficulty:</label>
+              <select id="char-difficulty-select" class="fantasy-select">
+                <option value="story">Story Weaver (Forgiving & Narrative Focused)</option>
+                <option value="normal" selected>Aethelgard Adventurer (Balanced Tactical Combat)</option>
+                <option value="hard">Veteran Hero (Dangerous Monsters & Scarcity)</option>
+                <option value="nightmare">Iron Sovereign (Permadeath & Brutal Foes)</option>
+              </select>
+              
+              <div class="stat-attribute-breakdown" id="creation-stat-breakdown">
+                <div class="stat-row"><span>Strength:</span> <b id="create-stat-str">14</b></div>
+                <div class="stat-row"><span>Agility:</span> <b id="create-stat-agi">10</b></div>
+                <div class="stat-row"><span>Intelligence:</span> <b id="create-stat-int">8</b></div>
+                <div class="stat-row"><span>Vitality:</span> <b id="create-stat-vit">16</b></div>
+                <div class="stat-row"><span>Wisdom:</span> <b id="create-stat-wis">12</b></div>
+                <div class="stat-row"><span>Luck:</span> <b id="create-stat-lck">10</b></div>
+              </div>
+            </div>
+            <div class="creation-actions">
+              <button class="btn-fantasy" id="btn-cancel-creation">Back to Menu</button>
+              <button class="btn-fantasy btn-primary" id="btn-start-game">Embark on Quest ⚔️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- 3. INVENTORY & EQUIPMENT MODAL -->
+    <div id="modal-inventory" class="game-modal">
+      <div class="modal-backdrop"></div>
+      <div class="modal-window glass-modal modal-wide">
+        <div class="modal-header">
+          <h3 class="modal-title">Inventory & Armory</h3>
+          <button class="modal-close-btn" data-close="modal-inventory">&times;</button>
+        </div>
+        <div class="modal-body inventory-grid-layout">
+          <!-- Equipment Paperdoll -->
+          <div class="equipment-paperdoll-panel">
+            <h4 class="subpanel-title">Equipped Relics & Gear</h4>
+            <div class="paperdoll-slots-layout">
+              <div class="equip-slot slot-helm" data-slot="helm" id="equip-slot-helm">
+                <span class="equip-slot-label">Helm</span>
+                <div class="equip-slot-content empty" id="slot-icon-helm"></div>
+              </div>
+              <div class="equip-slot slot-neck" data-slot="neck" id="equip-slot-neck">
+                <span class="equip-slot-label">Neck</span>
+                <div class="equip-slot-content empty" id="slot-icon-neck"></div>
+              </div>
+              <div class="equip-slot slot-shoulders" data-slot="shoulders" id="equip-slot-shoulders">
+                <span class="equip-slot-label">Shoulders</span>
+                <div class="equip-slot-content empty" id="slot-icon-shoulders"></div>
+              </div>
+              <div class="equip-slot slot-chest" data-slot="chest" id="equip-slot-chest">
+                <span class="equip-slot-label">Chest</span>
+                <div class="equip-slot-content empty" id="slot-icon-chest"></div>
+              </div>
+              <div class="equip-slot slot-cloak" data-slot="cloak" id="equip-slot-cloak">
+                <span class="equip-slot-label">Cloak</span>
+                <div class="equip-slot-content empty" id="slot-icon-cloak"></div>
+              </div>
+              <div class="equip-slot slot-gloves" data-slot="gloves" id="equip-slot-gloves">
+                <span class="equip-slot-label">Gloves</span>
+                <div class="equip-slot-content empty" id="slot-icon-gloves"></div>
+              </div>
+              <div class="equip-slot slot-mainhand" data-slot="mainhand" id="equip-slot-mainhand">
+                <span class="equip-slot-label">Mainhand</span>
+                <div class="equip-slot-content empty" id="slot-icon-mainhand"></div>
+              </div>
+              <div class="equip-slot slot-offhand" data-slot="offhand" id="equip-slot-offhand">
+                <span class="equip-slot-label">Offhand</span>
+                <div class="equip-slot-content empty" id="slot-icon-offhand"></div>
+              </div>
+              <div class="equip-slot slot-belt" data-slot="belt" id="equip-slot-belt">
+                <span class="equip-slot-label">Belt</span>
+                <div class="equip-slot-content empty" id="slot-icon-belt"></div>
+              </div>
+              <div class="equip-slot slot-pants" data-slot="pants" id="equip-slot-pants">
+                <span class="equip-slot-label">Pants</span>
+                <div class="equip-slot-content empty" id="slot-icon-pants"></div>
+              </div>
+              <div class="equip-slot slot-boots" data-slot="boots" id="equip-slot-boots">
+                <span class="equip-slot-label">Boots</span>
+                <div class="equip-slot-content empty" id="slot-icon-boots"></div>
+              </div>
+              <div class="equip-slot slot-ring1" data-slot="ring1" id="equip-slot-ring1">
+                <span class="equip-slot-label">Ring1</span>
+                <div class="equip-slot-content empty" id="slot-icon-ring1"></div>
+              </div>
+              <div class="equip-slot slot-ring2" data-slot="ring2" id="equip-slot-ring2">
+                <span class="equip-slot-label">Ring2</span>
+                <div class="equip-slot-content empty" id="slot-icon-ring2"></div>
+              </div>
+              <div class="equip-slot slot-trinket" data-slot="trinket" id="equip-slot-trinket">
+                <span class="equip-slot-label">Trinket</span>
+                <div class="equip-slot-content empty" id="slot-icon-trinket"></div>
+              </div>
+            </div>
+            <div class="paperdoll-stats-summary" id="paperdoll-stats-summary">
+              <div class="stat-item"><span>Total Armor:</span> <b id="summary-armor">24</b></div>
+              <div class="stat-item"><span>Attack Power:</span> <b id="summary-attack">38</b></div>
+              <div class="stat-item"><span>Magic Power:</span> <b id="summary-spell">12</b></div>
+              <div class="stat-item"><span>Crit Chance:</span> <b id="summary-crit">5.0%</b></div>
+              <div class="stat-item"><span>Dodge Rate:</span> <b id="summary-dodge">3.5%</b></div>
+            </div>
+          </div>
+          
+          <!-- Inventory Bag Grid -->
+          <div class="inventory-bag-panel">
+            <div class="inventory-toolbar">
+              <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="weapon">Weapons</button>
+                <button class="filter-tab" data-filter="armor">Armor</button>
+                <button class="filter-tab" data-filter="consumable">Potions</button>
+                <button class="filter-tab" data-filter="material">Materials</button>
+                <button class="filter-tab" data-filter="quest">Quest</button>
+              </div>
+              <div class="inventory-sort-actions">
+                <button class="btn-fantasy btn-small" id="btn-sort-inventory">Sort ⤮</button>
+                <button class="btn-fantasy btn-small" id="btn-salvage-junk">Salvage Junk ♻</button>
+              </div>
+            </div>
+            <div class="inventory-bag-grid" id="inventory-bag-grid">
+              <div class="inv-slot" data-index="0" id="inv-slot-0">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="1" id="inv-slot-1">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="2" id="inv-slot-2">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="3" id="inv-slot-3">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="4" id="inv-slot-4">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="5" id="inv-slot-5">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="6" id="inv-slot-6">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="7" id="inv-slot-7">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="8" id="inv-slot-8">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="9" id="inv-slot-9">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="10" id="inv-slot-10">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="11" id="inv-slot-11">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="12" id="inv-slot-12">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="13" id="inv-slot-13">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="14" id="inv-slot-14">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="15" id="inv-slot-15">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="16" id="inv-slot-16">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="17" id="inv-slot-17">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="18" id="inv-slot-18">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="19" id="inv-slot-19">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="20" id="inv-slot-20">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="21" id="inv-slot-21">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="22" id="inv-slot-22">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="23" id="inv-slot-23">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="24" id="inv-slot-24">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="25" id="inv-slot-25">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="26" id="inv-slot-26">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="27" id="inv-slot-27">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="28" id="inv-slot-28">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="29" id="inv-slot-29">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="30" id="inv-slot-30">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="31" id="inv-slot-31">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="32" id="inv-slot-32">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="33" id="inv-slot-33">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="34" id="inv-slot-34">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="35" id="inv-slot-35">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="36" id="inv-slot-36">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="37" id="inv-slot-37">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="38" id="inv-slot-38">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="39" id="inv-slot-39">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="40" id="inv-slot-40">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="41" id="inv-slot-41">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="42" id="inv-slot-42">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="43" id="inv-slot-43">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="44" id="inv-slot-44">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="45" id="inv-slot-45">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="46" id="inv-slot-46">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="47" id="inv-slot-47">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="48" id="inv-slot-48">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="49" id="inv-slot-49">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="50" id="inv-slot-50">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="51" id="inv-slot-51">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="52" id="inv-slot-52">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="53" id="inv-slot-53">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="54" id="inv-slot-54">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="55" id="inv-slot-55">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="56" id="inv-slot-56">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="57" id="inv-slot-57">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="58" id="inv-slot-58">
+                <div class="slot-item empty"></div>
+              </div>
+              <div class="inv-slot" data-index="59" id="inv-slot-59">
+                <div class="slot-item empty"></div>
+              </div>
+            </div>
+            <div class="inventory-capacity-footer">
+              <span id="inv-capacity-text">Slots Used: 12 / 60</span>
+              <span id="inv-gold-display">💰 250 Gold</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 4. CHARACTER SHEET & ATTRIBUTES MODAL -->
+    <div id="modal-character" class="game-modal">
+      <div class="modal-backdrop"></div>
+      <div class="modal-window glass-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Character Attributes & Heritage</h3>
+          <button class="modal-close-btn" data-close="modal-character">&times;</button>
+        </div>
+        <div class="modal-body charsheet-layout">
+          <div class="charsheet-overview">
+            <div class="charsheet-avatar-frame">
+              <canvas id="charsheet-avatar-canvas" width="160" height="200"></canvas>
+              <h4 class="charsheet-name" id="sheet-hero-name">Alden Shadowbane</h4>
+              <p class="charsheet-title" id="sheet-hero-title">Level 1 Paladin of the Sunlit Oath</p>
+            </div>
+            <div class="charsheet-unspent-points">
+              <span>Unallocated Attribute Points:</span>
+              <b id="sheet-unspent-points">0</b>
+            </div>
+          </div>
+          <div class="charsheet-attributes-list">
+            <div class="attribute-row" data-attr="str">
+              <div class="attr-info">
+                <span class="attr-label">Strength</span>
+                <span class="attr-desc">Increases physical melee attack damage, carry capacity, and shield block value.</span>
+              </div>
+              <div class="attr-controls">
+                <span class="attr-value" id="sheet-attr-str">10</span>
+                <button class="btn-attr-plus" data-attr="str" id="btn-add-attr-str">+</button>
+              </div>
+            </div>
+            <div class="attribute-row" data-attr="agi">
+              <div class="attr-info">
+                <span class="attr-label">Agility</span>
+                <span class="attr-desc">Increases ranged attack damage, critical hit chance, movement speed, and evasion.</span>
+              </div>
+              <div class="attr-controls">
+                <span class="attr-value" id="sheet-attr-agi">10</span>
+                <button class="btn-attr-plus" data-attr="agi" id="btn-add-attr-agi">+</button>
+              </div>
+            </div>
+            <div class="attribute-row" data-attr="int">
+              <div class="attr-info">
+                <span class="attr-label">Intelligence</span>
+                <span class="attr-desc">Increases spell damage, maximum mana pool, and elemental spell penetration.</span>
+              </div>
+              <div class="attr-controls">
+                <span class="attr-value" id="sheet-attr-int">10</span>
+                <button class="btn-attr-plus" data-attr="int" id="btn-add-attr-int">+</button>
+              </div>
+            </div>
+            <div class="attribute-row" data-attr="vit">
+              <div class="attr-info">
+                <span class="attr-label">Vitality</span>
+                <span class="attr-desc">Increases maximum health points, physical damage resistance, and health regeneration.</span>
+              </div>
+              <div class="attr-controls">
+                <span class="attr-value" id="sheet-attr-vit">10</span>
+                <button class="btn-attr-plus" data-attr="vit" id="btn-add-attr-vit">+</button>
+              </div>
+            </div>
+            <div class="attribute-row" data-attr="wis">
+              <div class="attr-info">
+                <span class="attr-label">Wisdom</span>
+                <span class="attr-desc">Increases mana regeneration speed, healing potency, and resistance to mind afflictions.</span>
+              </div>
+              <div class="attr-controls">
+                <span class="attr-value" id="sheet-attr-wis">10</span>
+                <button class="btn-attr-plus" data-attr="wis" id="btn-add-attr-wis">+</button>
+              </div>
+            </div>
+            <div class="attribute-row" data-attr="lck">
+              <div class="attr-info">
+                <span class="attr-label">Luck</span>
+                <span class="attr-desc">Increases rare loot drop chance, critical damage multiplier, and gambling odds.</span>
+              </div>
+              <div class="attr-controls">
+                <span class="attr-value" id="sheet-attr-lck">10</span>
+                <button class="btn-attr-plus" data-attr="lck" id="btn-add-attr-lck">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 5. SKILL TREE & TALENTS MODAL -->
+    <div id="modal-skills" class="game-modal">
+      <div class="modal-backdrop"></div>
+      <div class="modal-window glass-modal modal-extra-wide">
+        <div class="modal-header">
+          <h3 class="modal-title">Ascension Skill Trees</h3>
+          <div class="skill-tree-points-badge">
+            <span>Talent Points Available: <b id="skill-unspent-points">1</b></span>
+            <button class="btn-fantasy btn-small" id="btn-reset-talents">Reset Talents ↺</button>
+          </div>
+          <button class="modal-close-btn" data-close="modal-skills">&times;</button>
+        </div>
+        <div class="modal-body skilltree-layout">
+          <div class="skilltree-discipline-tabs" id="skilltree-discipline-tabs">
+            <button class="discipline-tab active" data-discipline="0">Radiance Discipline</button>
+            <button class="discipline-tab" data-discipline="1">Aegis Protection</button>
+            <button class="discipline-tab" data-discipline="2">Judgement & Wrath</button>
+          </div>
+          <div class="skilltree-canvas-container">
+            <canvas id="skilltree-canvas" width="900" height="480"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 6. QUEST JOURNAL MODAL -->
+    <div id="modal-quests" class="game-modal">
+      <div class="modal-backdrop"></div>
+      <div class="modal-window glass-modal modal-wide">
+        <div class="modal-header">
+          <h3 class="modal-title">Chronicle of Deeds & Quests</h3>
+          <button class="modal-close-btn" data-close="modal-quests">&times;</button>
+        </div>
+        <div class="modal-body questlog-layout">
+          <div class="quest-category-sidebar">
+            <button class="quest-cat-btn active" data-category="main">Main Campaign</button>
+            <button class="quest-cat-btn" data-category="side">Side Requests</button>
+            <button class="quest-cat-btn" data-category="bounty">Guild Bounties</button>
+            <button class="quest-cat-btn" data-category="completed">Completed Journal</button>
+          </div>
+          <div class="quest-list-panel" id="quest-items-list"></div>
+          <div class="quest-detail-panel" id="quest-detail-view">
+            <h4 class="quest-detail-title" id="quest-view-title">Select a quest from the log</h4>
+            <p class="quest-detail-desc" id="quest-view-desc">Details regarding your journey will appear here.</p>
+            <div class="quest-objectives-box" id="quest-view-objectives"></div>
+            <div class="quest-rewards-box" id="quest-view-rewards"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 7. KINGDOM & SETTLEMENT MODAL -->
+    <div id="modal-kingdom" class="game-modal">
+      <div class="modal-backdrop"></div>
+      <div class="modal-window glass-modal modal-extra-wide">
+        <div class="modal-header">
+          <h3 class="modal-title">Kingdom of New Valoria • Settlement Administration</h3>
+          <button class="modal-close-btn" data-close="modal-kingdom">&times;</button>
+        </div>
+        <div class="modal-body kingdom-layout">
+          <div class="kingdom-overview-strip">
+            <div class="k-stat"><span>Population:</span> <b id="k-pop-val">45 / 50</b></div>
+            <div class="k-stat"><span>Happiness:</span> <b id="k-happy-val">88% (Content)</b></div>
+            <div class="k-stat"><span>Defense Rating:</span> <b id="k-def-val">120</b></div>
+            <div class="k-stat"><span>Daily Income:</span> <b id="k-income-val">+65 Gold</b></div>
+            <div class="k-stat"><span>Threat Level:</span> <b id="k-threat-val">Low (12%)</b></div>
+          </div>
+          <div class="kingdom-main-view">
+            <div class="kingdom-town-canvas-box">
+              <canvas id="kingdom-town-canvas" width="600" height="400"></canvas>
+            </div>
+            <div class="kingdom-building-cards-panel" id="kingdom-building-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 8. CRAFTING & FORGE MODAL -->
+    <div id="modal-crafting" class="game-modal">
+      <div class="modal-backdrop"></div>
+      <div class="modal-window glass-modal modal-wide">
+        <div class="modal-header">
+          <h3 class="modal-title">Royal Forge & Workshop</h3>
+          <button class="modal-close-btn" data-close="modal-crafting">&times;</button>
+        </div>
+        <div class="modal-body crafting-layout">
+          <div class="crafting-categories">
+            <button class="craft-cat-btn active" data-craft-cat="weapons">Weaponsmithing</button>
+            <button class="craft-cat-btn" data-craft-cat="armors">Armorsmithing</button>
+            <button class="craft-cat-btn" data-craft-cat="jewels">Jewelcrafting</button>
+            <button class="craft-cat-btn" data-craft-cat="runes">Rune Enchanting</button>
+          </div>
+          <div class="crafting-recipe-list" id="crafting-recipe-list"></div>
+          <div class="crafting-workbench-panel" id="crafting-workbench">
+            <h4 class="recipe-title" id="craft-selected-title">Select Blueprint</h4>
+            <div class="recipe-materials-req" id="craft-materials-req"></div>
+            <button class="btn-fantasy btn-primary btn-large" id="btn-execute-craft">Forge Item ⚒️</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 9. ALCHEMY LAB MODAL -->
+    <div id="modal-alchemy" class="game-modal">
+      <div class="modal-backdrop"></div>
+      <div class="modal-window glass-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Hermetic Alchemy Laboratory</h3>
+          <button class="modal-close-btn" data-close="modal-alchemy">&times;</button>
+        </div>
+        <div class="modal-body alchemy-layout">
+          <div class="alchemy-cauldron-view">
+            <div class="cauldron-container">
+              <div class="cauldron-brew-liquid" id="cauldron-liquid"></div>
+            </div>
+            <div class="alchemy-heat-slider-container">
+              <label>Flame Intensity:</label>
+              <input type="range" id="alchemy-heat-slider" min="0" max="100" value="50">
+            </div>
+          </div>
+          <div class="alchemy-ingredients-picker" id="alchemy-ingredients-list"></div>
+          <div class="alchemy-actions">
+            <button class="btn-fantasy btn-primary" id="btn-brew-concoction">Brew Elixir 🧪</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 10. BESTIARY & CODEX MODAL -->
+    <div id="modal-bestiary" class="game-modal">
+      <div class="modal-backdrop"></div>
+      <div class="modal-window glass-modal modal-wide">
+        <div class="modal-header">
+          <h3 class="modal-title">Compendium of Monsters & Lore</h3>
+          <button class="modal-close-btn" data-close="modal-bestiary">&times;</button>
+        </div>
+        <div class="modal-body bestiary-layout">
+          <div class="bestiary-monster-list" id="bestiary-monster-list"></div>
+          <div class="bestiary-detail-view" id="bestiary-detail-view">
+            <canvas id="bestiary-monster-canvas" width="200" height="200"></canvas>
+            <h4 class="monster-name" id="bestiary-name">Select a Creature</h4>
+            <p class="monster-lore" id="bestiary-lore">Encounter beasts across the realm to catalog their habits and weaknesses.</p>
+            <div class="monster-stats" id="bestiary-stats"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 11. ACHIEVEMENTS MODAL -->
+    <div id="modal-achievements" class="game-modal">
+      <div class="modal-backdrop"></div>
+      <div class="modal-window glass-modal modal-wide">
+        <div class="modal-header">
+          <h3 class="modal-title">Realm Achievements & Trophies</h3>
+          <button class="modal-close-btn" data-close="modal-achievements">&times;</button>
+        </div>
+        <div class="modal-body achievements-layout" id="achievements-list-container"></div>
+      </div>
+    </div>
+    
+    <!-- 12. SETTINGS MODAL -->
+    <div id="modal-settings" class="game-modal">
+      <div class="modal-backdrop"></div>
+      <div class="modal-window glass-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Game Options & Chronicles Save</h3>
+          <button class="modal-close-btn" data-close="modal-settings">&times;</button>
+        </div>
+        <div class="modal-body settings-layout">
+          <div class="setting-group">
+            <label>Master Volume:</label>
+            <input type="range" id="setting-master-vol" min="0" max="100" value="80">
+          </div>
+          <div class="setting-group">
+            <label>Music Volume (Synthesizer):</label>
+            <input type="range" id="setting-music-vol" min="0" max="100" value="70">
+          </div>
+          <div class="setting-group">
+            <label>Sound FX Volume:</label>
+            <input type="range" id="setting-sfx-vol" min="0" max="100" value="85">
+          </div>
+          <div class="setting-group">
+            <label>Particle Quality:</label>
+            <select id="setting-particles" class="fantasy-select">
+              <option value="high">High (Full Spells & Weather)</option>
+              <option value="medium">Medium</option>
+              <option value="low">Performance (Minimal)</option>
+            </select>
+          </div>
+          <div class="settings-save-controls">
+            <button class="btn-fantasy" id="btn-save-game">Save Chronicle 💾</button>
+            <button class="btn-fantasy" id="btn-export-save">Export JSON 📤</button>
+            <button class="btn-fantasy" id="btn-import-save">Import JSON 📥</button>
+            <input type="file" id="file-import-save" style="display:none;" accept=".json">
+            <button class="btn-fantasy btn-danger" id="btn-return-title">Quit to Title ⎋</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 13. TAVERN CARD GAME MODAL -->
+    <div id="modal-card-game" class="game-modal">
+      <div class="modal-backdrop"></div>
+      <div class="modal-window glass-modal modal-full">
+        <div class="modal-header">
+          <h3 class="modal-title">The Royal Card Duel of Aethelgard</h3>
+          <button class="modal-close-btn" data-close="modal-card-game">&times;</button>
+        </div>
+        <div class="modal-body card-game-layout">
+          <!-- Opponent Side -->
+          <div class="card-side opponent-side">
+            <div class="card-player-info">
+              <span class="player-name" id="card-opp-name">Tavern Master Barnaby</span>
+              <span class="player-score" id="card-opp-score">Score: 0</span>
+            </div>
+            <div class="card-hand opponent-hand" id="card-opp-hand"></div>
+          </div>
+          <!-- Battlefield Rows -->
+          <div class="card-battlefield">
+            <div class="battlefield-row opp-siege-row" id="row-opp-siege"><span class="row-label">Siege</span></div>
+            <div class="battlefield-row opp-ranged-row" id="row-opp-ranged"><span class="row-label">Ranged</span></div>
+            <div class="battlefield-row opp-melee-row" id="row-opp-melee"><span class="row-label">Melee</span></div>
+            <div class="battlefield-divider"></div>
+            <div class="battlefield-row player-melee-row" id="row-player-melee"><span class="row-label">Melee</span></div>
+            <div class="battlefield-row player-ranged-row" id="row-player-ranged"><span class="row-label">Ranged</span></div>
+            <div class="battlefield-row player-siege-row" id="row-player-siege"><span class="row-label">Siege</span></div>
+          </div>
+          <!-- Player Side -->
+          <div class="card-side player-side">
+            <div class="card-player-info">
+              <span class="player-name" id="card-hero-name">Alden</span>
+              <span class="player-score" id="card-player-score">Score: 0</span>
+              <button class="btn-fantasy btn-small" id="btn-card-pass-turn">Pass Round</button>
+            </div>
+            <div class="card-hand player-hand" id="card-player-hand"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 14. NPC DIALOGUE OVERLAY -->
+    <div id="dialogue-overlay" class="dialogue-box-layer">
+      <div class="dialogue-container glass-modal">
+        <div class="dialogue-portrait-frame">
+          <canvas id="dialogue-portrait-canvas" width="120" height="120"></canvas>
+        </div>
+        <div class="dialogue-content">
+          <h4 class="dialogue-speaker-name" id="dialogue-speaker">Elder Rowan</h4>
+          <p class="dialogue-text" id="dialogue-body">The ancient ruins have stirred once more, champion...</p>
+          <div class="dialogue-choices" id="dialogue-choices"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 15. TACTICAL COMBAT ARENA OVERLAY -->
+    <div id="combat-overlay" class="combat-scene-layer">
+      <div class="combat-arena-wrapper">
+        <div class="combat-enemies-row" id="combat-enemies-container"></div>
+        <div class="combat-log-box glass-panel" id="combat-log-box">
+          <div class="log-entries" id="combat-log-entries"></div>
+        </div>
+        <div class="combat-action-dock glass-panel">
+          <div class="combat-dock-buttons">
+            <button class="btn-fantasy combat-btn" id="btn-combat-attack">⚔️ Strike</button>
+            <button class="btn-fantasy combat-btn" id="btn-combat-skill">✨ Skill</button>
+            <button class="btn-fantasy combat-btn" id="btn-combat-defend">🛡️ Guard</button>
+            <button class="btn-fantasy combat-btn" id="btn-combat-item">🧪 Potion</button>
+            <button class="btn-fantasy combat-btn" id="btn-combat-flee">🏃 Retreat</button>
+          </div>
+          <div class="combat-sub-actions" id="combat-sub-actions"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 16. FISHING MINIGAME OVERLAY -->
+    <div id="fishing-overlay" class="minigame-overlay">
+      <div class="fishing-box glass-modal">
+        <h3 class="minigame-title">Angler's Deep Waters</h3>
+        <div class="fishing-gauge-container">
+          <div class="fishing-tension-bar" id="fishing-tension-bar"></div>
+          <div class="fishing-target-zone" id="fishing-target-zone"></div>
+          <div class="fishing-bobber-icon" id="fishing-bobber">🎣</div>
+        </div>
+        <button class="btn-fantasy btn-large" id="btn-fishing-reel">Reel In! (Hold Space)</button>
+      </div>
+    </div>
+    
+    <!-- 17. LOCKPICKING MINIGAME OVERLAY -->
+    <div id="lockpicking-overlay" class="minigame-overlay">
+      <div class="lockpicking-box glass-modal">
+        <h3 class="minigame-title">Ancient Lock Mechanism</h3>
+        <canvas id="lockpicking-canvas" width="300" height="300"></canvas>
+        <div class="lock-instructions">Use [Mouse / Arrow Keys] to angle pick, [Space] to turn cylinder.</div>
+        <div class="picks-remaining" id="lock-picks-count">Picks Left: 5</div>
+      </div>
+    </div>
+    
+  </div>
+  
+  <!-- ======================================================== -->
+  <!-- JAVASCRIPT SYSTEM LOADER (IN STRICT DEPENDENCY ORDER)    -->
+  <!-- ======================================================== -->
+  
+  <!-- 1. Core Utilities & Foundation -->
+  <script src="js/core/math_utils.js"></script>
+  <script src="js/core/event_bus.js"></script>
+  <script src="js/core/performance.js"></script>
+  <script src="js/core/save_system.js"></script>
+  <script src="js/core/state_manager.js"></script>
+  <script src="js/core/engine.js"></script>
+  
+  <!-- 2. Procedural Audio Synthesizer & Music Sequencer -->
+  <script src="js/audio/sound_synth.js"></script>
+  <script src="js/audio/sound_effects.js"></script>
+  <script src="js/audio/audio_tracks.js"></script>
+  <script src="js/audio/music_sequencer.js"></script>
+  
+  <!-- 3. Render Engine & Procedural Canvas Vector Sprites -->
+  <script src="js/render/sprite_generator.js"></script>
+  <script src="js/render/particle_system.js"></script>
+  <script src="js/render/lighting_engine.js"></script>
+  <script src="js/render/weather_system.js"></script>
+  <script src="js/render/tile_renderer.js"></script>
+  <script src="js/render/canvas_renderer.js"></script>
+  
+  <!-- 4. World & Map Generation -->
+  <script src="js/world/tile_data.js"></script>
+  <script src="js/world/fog_of_war.js"></script>
+  <script src="js/world/day_night_cycle.js"></script>
+  <script src="js/world/dungeon_generator.js"></script>
+  <script src="js/world/world_generator.js"></script>
+  
+  <!-- 5. Static Databases & Content Catalogs -->
+  <script src="js/data/monsters_data.js"></script>
+  <script src="js/data/spells_data.js"></script>
+  <script src="js/data/items_data.js"></script>
+  <script src="js/data/buildings_data.js"></script>
+  <script src="js/data/card_game_data.js"></script>
+  <script src="js/data/quests_data.js"></script>
+  <script src="js/data/dialogue_data.js"></script>
+  <script src="js/data/lore_data.js"></script>
+  <script src="js/data/achievements_data.js"></script>
+  
+  <!-- 6. Skills, Items & Economy Logic -->
+  <script src="js/skills/passive_talents.js"></script>
+  <script src="js/skills/spell_effects.js"></script>
+  <script src="js/skills/ability_database.js"></script>
+  <script src="js/skills/skill_tree.js"></script>
+  <script src="js/items/item_database.js"></script>
+  <script src="js/items/loot_generator.js"></script>
+  <script src="js/items/equipment_system.js"></script>
+  <script src="js/items/crafting_system.js"></script>
+  <script src="js/items/alchemy_system.js"></script>
+  <script src="js/items/enchanting_system.js"></script>
+  
+  <!-- 7. Entities & AI Systems -->
+  <script src="js/entities/entity.js"></script>
+  <script src="js/entities/player.js"></script>
+  <script src="js/entities/npc.js"></script>
+  <script src="js/entities/monster.js"></script>
+  <script src="js/entities/bosses.js"></script>
+  <script src="js/entities/companion.js"></script>
+  <script src="js/entities/ai_controller.js"></script>
+  
+  <!-- 8. Combat Systems -->
+  <script src="js/combat/status_effects.js"></script>
+  <script src="js/combat/damage_calculator.js"></script>
+  <script src="js/combat/turn_manager.js"></script>
+  <script src="js/combat/action_resolver.js"></script>
+  <script src="js/combat/tactical_grid.js"></script>
+  <script src="js/combat/combat_ai.js"></script>
+  <script src="js/combat/combat_engine.js"></script>
+  
+  <!-- 9. Quests & Story Narrative -->
+  <script src="js/quests/lore_books.js"></script>
+  <script src="js/quests/dialogue_tree.js"></script>
+  <script src="js/quests/radiant_bounties.js"></script>
+  <script src="js/quests/side_quests.js"></script>
+  <script src="js/quests/main_story_quests.js"></script>
+  <script src="js/quests/quest_engine.js"></script>
+  
+  <!-- 10. Kingdom & Settlement -->
+  <script src="js/kingdom/building_data.js"></script>
+  <script src="js/kingdom/economy_simulation.js"></script>
+  <script src="js/kingdom/worker_assignment.js"></script>
+  <script src="js/kingdom/defense_system.js"></script>
+  <script src="js/kingdom/caravan_trading.js"></script>
+  <script src="js/kingdom/town_management.js"></script>
+  
+  <!-- 11. Minigames -->
+  <script src="js/minigames/card_game.js"></script>
+  <script src="js/minigames/fishing_minigame.js"></script>
+  <script src="js/minigames/lockpicking_game.js"></script>
+  <script src="js/minigames/rune_puzzle_game.js"></script>
+  <script src="js/minigames/arena_challenge.js"></script>
+  
+  <!-- 12. User Interface Controllers -->
+  <script src="js/ui/modal_manager.js"></script>
+  <script src="js/ui/hud_manager.js"></script>
+  <script src="js/ui/inventory_ui.js"></script>
+  <script src="js/ui/character_sheet_ui.js"></script>
+  <script src="js/ui/quest_log_ui.js"></script>
+  <script src="js/ui/dialogue_ui.js"></script>
+  <script src="js/ui/kingdom_ui.js"></script>
+  <script src="js/ui/bestiary_ui.js"></script>
+  <script src="js/ui/achievement_ui.js"></script>
+  <script src="js/ui/settings_ui.js"></script>
+  
+  <!-- 13. Application Entry Point -->
+  <script src="js/app.js"></script>
+</body>
+</html>
